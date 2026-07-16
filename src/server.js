@@ -16,8 +16,13 @@ const app = express();
 
 // --- Middleware ---
 app.use(cors({
-    origin: ['http://localhost:5173', 'http://localhost:3000'],
-    credentials: true
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'https://my-portfolio-frontend-nls09ytly-alex113.vercel.app',  // Your Vercel URL
+    // Add any other frontend URLs here
+  ],
+  credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
