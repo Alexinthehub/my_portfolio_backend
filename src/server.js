@@ -15,12 +15,15 @@ const certificateRoutes = require('./routes/certificateRoutes');
 const app = express();
 
 // --- Middleware ---
+const cors = require('cors');
+
+// Add this BEFORE your routes
 app.use(cors({
   origin: [
     'http://localhost:5173',
     'http://localhost:3000',
-    'https://my-portfolio-frontend-nls09ytly-alex113.vercel.app',  // Your Vercel URL
-    // Add any other frontend URLs here
+    'https://my-portfolio-frontend-alex113.vercel.app',   // Your Vercel URL (no trailing slash)
+    'https://my-portfolio-frontend-nls09ytly-alex113.vercel.app',  // Alternative Vercel URL
   ],
   credentials: true,
 }));
