@@ -1,8 +1,11 @@
 // src/controllers/contactController.js
 const ContactMessage = require('../models/ContactMessage');
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
-// --- Send a contact message ---
+// Initialize Resend with your API key
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+// --- Send a contact message using Resend ---
 const sendMessage = async (req, res) => {
     try {
         const { name, email, message } = req.body;
@@ -18,21 +21,13 @@ const sendMessage = async (req, res) => {
         // 2. Save to database
         const contact = await ContactMessage.create({ name, email, message });
 
-        // 3. Send email notification (Nodemailer)
+        // 3. Send email via Resend
         try {
-            // Configure transporter
-            const transporter = nodemailer.createTransport({
-                service: 'gmail',
-                auth: {
-                    user: process.env.EMAIL_USER,
-                    pass: process.env.EMAIL_PASS
-                }
-            });
-
-            // Email options
-            const mailOptions = {
-                from: process.env.EMAIL_USER,
-                to: process.env.EMAIL_USER, // Sends to YOUR email (the same one)
+            const senderEmail = process.env.RESEND_SENDER_EMAIL || 'alexandermwendwa3@gmail.com';
+            
+            const { data, error } = await resend.emails.send({
+                from: `${name} <${senderEmail}>`,
+                to: [senderEmail],
                 subject: `New Portfolio Message from ${name}`,
                 html: `
                     <h2>New Contact Form Submission</h2>
@@ -42,17 +37,19 @@ const sendMessage = async (req, res) => {
                     <p>${message}</p>
                     <hr>
                     <p><small>Sent from your portfolio website</small></p>
-                `
-            };
+                `,
+                replyTo: email,
+            });
 
-            // Send the email
-            await transporter.sendMail(mailOptions);
-            console.log('📧 Email notification sent successfully!');
+            if (error) {
+                console.error('❌ Resend error:', error);
+            } else {
+                console.log('📧 Email sent successfully via Resend! ID:', data?.id);
+            }
 
         } catch (emailError) {
             console.error('❌ Email sending failed:', emailError.message);
             // We still return success because the message was saved to DB
-            // But we log the error for debugging
         }
 
         // 4. Respond to the frontend
@@ -70,7 +67,7 @@ const sendMessage = async (req, res) => {
     }
 };
 
-// --- GET all messages (Admin only - protected later) ---
+// --- GET all messages (Admin only) ---
 const getMessages = async (req, res) => {
     try {
         const messages = await ContactMessage.find().sort({ createdAt: -1 });
