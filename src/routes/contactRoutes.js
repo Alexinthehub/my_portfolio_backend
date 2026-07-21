@@ -1,4 +1,3 @@
-// src/routes/contactRoutes.js
 const express = require('express');
 const { protect } = require('../middleware/auth');
 const {
@@ -10,10 +9,10 @@ const {
 
 const router = express.Router();
 
-// Public route (anyone can send a message)
-router.post('/', sendMessage);
+// ✅ PUBLIC — anyone can send a message
+router.post('/', sendMessage);  
 
-// Protected routes (only you)
+// 🔒 PROTECTED — only admin can view/delete messages
 router.get('/', protect, getMessages);
 router.delete('/:id', protect, deleteMessage);
 router.put('/:id/read', protect, markAsRead);
