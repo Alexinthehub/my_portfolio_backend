@@ -22,6 +22,7 @@ app.use(cors({
     'http://localhost:3000',
     'https://my-portfolio-frontend-alex113.vercel.app',
     'https://my-portfolio-frontend-nls09ytly-alex113.vercel.app',
+    'https://alexmwendwa.rweb.site',
   ],
   credentials: true,
 }));
