@@ -21,8 +21,12 @@ const CurrentProjectSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
-  // 🆕 GitHub repo link for tracking progress
   repoUrl: {
+    type: String,
+    default: '',
+    trim: true,
+  },
+  imageUrl: {
     type: String,
     default: '',
     trim: true,
