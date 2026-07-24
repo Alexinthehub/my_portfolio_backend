@@ -1,67 +1,89 @@
-// src/server.js
+// =============================================
+// DEPENDENCIES
+// =============================================
 require('dotenv').config();
-
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors'); // ✅ ONLY ONE — KEEP THIS
-const projectRoutes = require('./routes/projectRoutes');
-const contactRoutes = require('./routes/contactRoutes');
-const authRoutes = require('./routes/authRoutes');
-const profileRoutes = require('./routes/profileRoutes');
-const currentProjectRoutes = require('./routes/currentProjectRoutes');
-const certificateRoutes = require('./routes/certificateRoutes');
+const cors = require('cors');
+const helmet = require('helmet');
 
+// =============================================
+// ROUTE IMPORTS (Adjust paths if your routes are in different folders)
+// =============================================
+const profileRoutes = require('./routes/profile');
+const projectRoutes = require('./routes/projects');
+const contactRoutes = require('./routes/contact');
+const currentProjectRoutes = require('./routes/currentProjects');
+const certificateRoutes = require('./routes/certificates');
+const adminRoutes = require('./routes/admin');
+
+// =============================================
+// APP INITIALIZATION
+// =============================================
 const app = express();
+const PORT = process.env.PORT || 5001;
 
-// --- Middleware ---
-// ✅ REMOVE THE DUPLICATE const cors = require('cors'); HERE
+// =============================================
+// MIDDLEWARE
+// =============================================
 
-app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'https://my-portfolio-frontend-alex113.vercel.app',
-    'https://my-portfolio-frontend-nls09ytly-alex113.vercel.app',
-    'https://alexmwendwa.rweb.site',
-  ],
-  credentials: true,
-}));
+// 1. CORS - Allow YOUR specific frontend domain
+app.use(
+  cors({
+    origin: 'https://alexmwendwa.rweb.site', // Your exact live frontend
+    credentials: true,
+  })
+);
 
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// 2. HELMET with FIXED CSP (Overrides the default strict policy)
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-eval'", "'unsafe-inline'"],
+        // CRITICAL: Allows your frontend to call this backend
+        connectSrc: ["'self'", "https://alexmwendwa.rweb.site"],
+        imgSrc: ["'self'", "data:", "https://res.cloudinary.com"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+      },
+    },
+  })
+);
 
-// --- Routes ---
+// 3. Body Parsers
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// =============================================
+// DATABASE CONNECTION
+// =============================================
+mongoose
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log('✅ MongoDB Connected Successfully'))
+  .catch((err) => console.error('❌ MongoDB Connection Error:', err));
+
+// =============================================
+// ROUTES (Matches your exact API endpoints)
+// =============================================
 app.use('/api/profile', profileRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/contact', contactRoutes);
-app.use('/api/admin', authRoutes);
 app.use('/api/current-projects', currentProjectRoutes);
 app.use('/api/certificates', certificateRoutes);
+app.use('/api/admin', adminRoutes);
 
+// Health Check
 app.get('/api/health', (req, res) => {
-    res.status(200).json({ status: 'OK', message: 'Server is alive!' });
+  res.status(200).json({ status: 'OK', message: 'Portfolio API is running' });
 });
 
-// --- Global Error Handler ---
-app.use((err, req, res, next) => {
-    console.error('❌ Error:', err.stack);
-    res.status(500).json({ success: false, message: 'Server error' });
-});
-
-// --- START THE SERVER ---
-const PORT = process.env.PORT || 5000;
+// =============================================
+// START SERVER
+// =============================================
 app.listen(PORT, () => {
-    console.log(`🚀 Server is running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
-
-// --- CONNECT TO DATABASE ---
-const connectDB = async () => {
-    try {
-        console.log('⏳ Connecting to MongoDB...');
-        await mongoose.connect(process.env.MONGO_URI);
-        console.log('✅ MongoDB Connected Successfully!');
-    } catch (error) {
-        console.error('❌ Database connection failed:', error.message);
-    }
-};
-connectDB();
