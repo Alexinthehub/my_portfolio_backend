@@ -4,7 +4,11 @@ const Certificate = require('../models/Certificate');
 // --- GET all certificates (public) ---
 const getCertificates = async (req, res) => {
   try {
-    const certificates = await Certificate.find().sort({ date: -1 });
+    // ✅ ONLY return these fields – exclude description, notes, recipient, etc.
+    const certificates = await Certificate.find()
+      .select('title issuer date category imageUrl verifyUrl')
+      .sort({ date: -1 });
+    
     res.status(200).json({
       success: true,
       count: certificates.length,
@@ -19,33 +23,19 @@ const getCertificates = async (req, res) => {
   }
 };
 
-// --- GET a single certificate (public) ---
-const getCertificateById = async (req, res) => {
-  try {
-    const certificate = await Certificate.findById(req.params.id);
-    if (!certificate) {
-      return res.status(404).json({
-        success: false,
-        message: 'Certificate not found',
-      });
-    }
-    res.status(200).json({
-      success: true,
-      data: certificate,
-    });
-  } catch (error) {
-    console.error('Error fetching certificate:', error.message);
-    res.status(500).json({
-      success: false,
-      message: 'Server error while fetching certificate',
-    });
-  }
-};
-
-// --- CREATE a new certificate (admin only) ---
+// --- CREATE certificate (admin only) ---
 const createCertificate = async (req, res) => {
   try {
-    const certificate = await Certificate.create(req.body);
+    // Only allow specific fields
+    const { title, issuer, date, category, imageUrl, verifyUrl } = req.body;
+    const certificate = await Certificate.create({
+      title,
+      issuer,
+      date,
+      category,
+      imageUrl,
+      verifyUrl,
+    });
     res.status(201).json({
       success: true,
       data: certificate,
@@ -59,12 +49,14 @@ const createCertificate = async (req, res) => {
   }
 };
 
-// --- UPDATE a certificate (admin only) ---
+// --- UPDATE certificate (admin only) ---
 const updateCertificate = async (req, res) => {
   try {
+    // Only allow specific fields to be updated
+    const { title, issuer, date, category, imageUrl, verifyUrl } = req.body;
     const certificate = await Certificate.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      { title, issuer, date, category, imageUrl, verifyUrl },
       { new: true, runValidators: true }
     );
     if (!certificate) {
@@ -86,7 +78,7 @@ const updateCertificate = async (req, res) => {
   }
 };
 
-// --- DELETE a certificate (admin only) ---
+// --- DELETE certificate (admin only) ---
 const deleteCertificate = async (req, res) => {
   try {
     const certificate = await Certificate.findByIdAndDelete(req.params.id);
@@ -111,7 +103,6 @@ const deleteCertificate = async (req, res) => {
 
 module.exports = {
   getCertificates,
-  getCertificateById,
   createCertificate,
   updateCertificate,
   deleteCertificate,
