@@ -26,6 +26,8 @@ const PORT = process.env.PORT || 5001;
 // =============================================
 // MIDDLEWARE
 // =============================================
+
+// 1. CORS - Allow your frontend domain
 app.use(
   cors({
     origin: 'https://alexmwendwa.rweb.site',
@@ -33,6 +35,7 @@ app.use(
   })
 );
 
+// 2. HELMET with CSP
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -47,6 +50,7 @@ app.use(
   })
 );
 
+// 3. Body Parsers
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -59,7 +63,7 @@ mongoose
   .catch((err) => console.error('❌ MongoDB Connection Error:', err));
 
 // =============================================
-// ROUTES
+// API ROUTES
 // =============================================
 app.use('/api/profile', profileRoutes);
 app.use('/api/projects', projectRoutes);
@@ -68,12 +72,23 @@ app.use('/api/current-projects', currentProjectRoutes);
 app.use('/api/certificates', certificateRoutes);
 app.use('/api/admin', authRoutes);
 
-// Health Check
+// =============================================
+// HEALTH CHECK
+// =============================================
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'OK', message: 'Portfolio API is running' });
 });
 
-// ✅ ROOT ROUTE – returns API info
+// =============================================
+// TEST ROUTE (to verify server is responding)
+// =============================================
+app.get('/test', (req, res) => {
+  res.json({ message: 'Test route works!' });
+});
+
+// =============================================
+// ROOT ROUTE – Returns API info
+// =============================================
 app.get('/', (req, res) => {
   res.json({
     message: '🚀 Portfolio API is running!',
@@ -86,6 +101,7 @@ app.get('/', (req, res) => {
       'current-projects': '/api/current-projects',
       admin: '/api/admin/login',
       health: '/api/health',
+      test: '/test',
     },
   });
 });
