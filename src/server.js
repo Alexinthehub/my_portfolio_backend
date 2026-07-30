@@ -8,14 +8,14 @@ const cors = require('cors');
 const helmet = require('helmet');
 
 // =============================================
-// ROUTE IMPORTS (CORRECT FILENAMES)
+// ROUTE IMPORTS
 // =============================================
 const profileRoutes = require('./routes/profileRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const contactRoutes = require('./routes/contactRoutes');
 const currentProjectRoutes = require('./routes/currentProjectRoutes');
 const certificateRoutes = require('./routes/certificateRoutes');
-const authRoutes = require('./routes/authRoutes'); // Admin login is in authRoutes
+const authRoutes = require('./routes/authRoutes');
 
 // =============================================
 // APP INITIALIZATION
@@ -26,8 +26,6 @@ const PORT = process.env.PORT || 5001;
 // =============================================
 // MIDDLEWARE
 // =============================================
-
-// 1. CORS - Allow YOUR specific frontend domain
 app.use(
   cors({
     origin: 'https://alexmwendwa.rweb.site',
@@ -35,7 +33,6 @@ app.use(
   })
 );
 
-// 2. HELMET with FIXED CSP
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -50,7 +47,6 @@ app.use(
   })
 );
 
-// 3. Body Parsers
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -63,23 +59,21 @@ mongoose
   .catch((err) => console.error('❌ MongoDB Connection Error:', err));
 
 // =============================================
-// ROUTES (CORRECT ENDPOINTS)
+// ROUTES
 // =============================================
 app.use('/api/profile', profileRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/current-projects', currentProjectRoutes);
 app.use('/api/certificates', certificateRoutes);
-app.use('/api/admin', authRoutes); // authRoutes handles /api/admin/login
+app.use('/api/admin', authRoutes);
 
 // Health Check
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'OK', message: 'Portfolio API is running' });
 });
 
-// =============================================
-// ROOT ROUTE (Optional – returns API info)
-// =============================================
+// ✅ ROOT ROUTE – returns API info
 app.get('/', (req, res) => {
   res.json({
     message: '🚀 Portfolio API is running!',
