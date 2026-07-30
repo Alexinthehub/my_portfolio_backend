@@ -78,6 +78,25 @@ app.get('/api/health', (req, res) => {
 });
 
 // =============================================
+// ROOT ROUTE (Optional – returns API info)
+// =============================================
+app.get('/', (req, res) => {
+  res.json({
+    message: '🚀 Portfolio API is running!',
+    version: '1.0.0',
+    endpoints: {
+      profile: '/api/profile',
+      projects: '/api/projects',
+      certificates: '/api/certificates',
+      contact: '/api/contact',
+      'current-projects': '/api/current-projects',
+      admin: '/api/admin/login',
+      health: '/api/health',
+    },
+  });
+});
+
+// =============================================
 // START SERVER
 // =============================================
 app.listen(PORT, () => {
